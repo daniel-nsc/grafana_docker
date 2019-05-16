@@ -1,0 +1,3 @@
+[submodule "prometheus_python_exporters"]
+	path = prometheus_python_exporters
+	url = https://github.com/daniel-nsc/prometheus_python_exporters

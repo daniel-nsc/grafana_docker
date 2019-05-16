@@ -1,0 +1,53 @@
+version: '3.4'
+
+volumes:
+    grafana_data: {}
+    prometheus_data: {}
+
+services:
+  grafana:
+    container_name: grafana
+    restart: unless-stopped
+    image: grafana/grafana
+    user: grafana
+    volumes:
+      - grafana_data:/var/lib/grafana
+    env_file:
+      - ./grafana.env
+    ports:
+      - "3000:3000"
+  prometheus:
+    image: prom/prometheus:v2.4.3
+    container_name: prometheus
+    volumes:
+      - ./prometheus/:/etc/prometheus/
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention=200h'
+      - '--web.enable-lifecycle'
+    restart: unless-stopped
+    ports:
+     - "9090:9090"
+  blackbox:
+    image: prom/blackbox-exporter
+    restart: unless-stopped
+    volumes:
+      - ./blackbox/:/etc/blackbox_exporter/
+    expose:
+      - "9115"
+    ports:
+      - "9115:9115"
+  python_exporter:
+    restart: unless-stopped
+    build: ./prometheus_python_exporters
+    command:
+      - python
+      - main.py 
+    expose:
+      - 8000
+    ports:
+      - "8000:8000"
